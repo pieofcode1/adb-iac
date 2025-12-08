@@ -22,7 +22,7 @@ Before deploying the Azure Databricks with Unity Catalog infrastructure, please 
 - [ ] Account admin permissions (for Unity Catalog setup)
 
 ### 4. Configuration
-- [ ] Review and customize `terraform.tfvars` with your settings
+- [ ] Review and customize `terraform.tfvars.sample` with your settings and save it as `terraform.tfvars`
 - [ ] Set unity_catalog_admin_users with actual email addresses
 - [ ] Configure allowed_ip_ranges if network restrictions needed
 - [ ] Set TF_VAR_databricks_account_id environment variable
