@@ -195,12 +195,60 @@ infra/
 
 ## Cleanup
 
+### Standard Destroy
+
 To destroy all resources:
 ```bash
 terraform destroy -var-file="terraform.tfvars"
 ```
 
 **Warning**: This will delete all resources including data. Make sure to backup any important data before destroying.
+
+### Unity Catalog Destroy Sequence (If Standard Destroy Fails)
+
+Due to dependencies between Unity Catalog resources, a standard `terraform destroy` may fail with an error like:
+
+> *"Storage credential cannot be deleted because it is configured as this metastore's root credential"*
+
+This happens because the Databricks provider tries to delete the metastore data access (storage credential) before the metastore itself, but the metastore still references it as the root credential.
+
+**Follow these steps in order:**
+
+#### Step 1: Remove the metastore data access from Terraform state
+```powershell
+terraform state rm "databricks_metastore_data_access.unity_catalog[0]"
+```
+
+#### Step 2: Destroy the metastore (this will clean up its own root credential)
+```powershell
+terraform destroy -target="databricks_metastore.unity_catalog[0]" -auto-approve
+```
+
+#### Step 3: Destroy remaining resources
+```powershell
+terraform destroy -auto-approve
+```
+
+### Alternative: Destroy with Explicit Dependencies
+
+If you prefer to handle this without state manipulation, you can also:
+
+1. **First**, manually delete the metastore from the Databricks Account Console
+2. **Then**, run `terraform destroy` to clean up remaining Azure resources
+
+### Clean State After Failed Destroy
+
+If a destroy partially fails, you may need to clean up the Terraform state:
+```powershell
+# List all resources in state
+terraform state list
+
+# Remove orphaned resources from state (example)
+terraform state rm "resource_type.resource_name"
+
+# Then destroy remaining resources
+terraform destroy -auto-approve
+```
 
 ## Cost Optimization
 

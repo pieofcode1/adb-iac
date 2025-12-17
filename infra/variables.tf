@@ -27,12 +27,6 @@ variable "databricks_sku" {
   }
 }
 
-variable "no_public_ip" {
-  description = "Whether to disable public IP for Databricks clusters"
-  type        = bool
-  default     = false
-}
-
 variable "cluster_node_type" {
   description = "Node type for Databricks cluster"
   type        = string
@@ -86,4 +80,10 @@ variable "databricks_account_id" {
   type        = string
   default     = ""
   sensitive   = true
+}
+
+variable "existing_metastore_id" {
+  description = "ID of an existing Unity Catalog metastore to use. If empty, a new metastore will be created."
+  type        = string
+  default     = ""
 }

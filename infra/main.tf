@@ -3,11 +3,11 @@ terraform {
   required_providers {
     azurerm = {
       source  = "hashicorp/azurerm"
-      version = "~>3.0"
+      version = "=4.55.0"
     }
     databricks = {
       source  = "databricks/databricks"
-      version = "~>1.29"
+      version = "=1.99.0"
     }
     random = {
       source  = "hashicorp/random"
@@ -28,7 +28,16 @@ provider "azurerm" {
       prevent_deletion_if_contains_resources = false
     }
   }
+  subscription_id = "569c92fe-efb6-440d-9274-73860e3f69aa"
+  # Use Azure AD authentication for storage account operations instead of access keys
+  storage_use_azuread = true
 }
+
+# # Configure Databricks provider for analytics workspace
+# provider "databricks" {
+#   alias = "analytics"
+#   host  = azurerm_databricks_workspace.main.workspace_url
+# }
 
 # Generate a random suffix for unique resource names
 resource "random_string" "suffix" {
@@ -45,86 +54,6 @@ resource "azurerm_resource_group" "main" {
   tags = local.common_tags
 }
 
-# Create Virtual Network
-resource "azurerm_virtual_network" "main" {
-  name                = "vnet-databricks-${var.environment}-${random_string.suffix.result}"
-  address_space       = ["10.0.0.0/16"]
-  location            = azurerm_resource_group.main.location
-  resource_group_name = azurerm_resource_group.main.name
-
-  tags = local.common_tags
-}
-
-# Create Databricks Public Subnet
-resource "azurerm_subnet" "public" {
-  name                 = "snet-databricks-public-${var.environment}"
-  resource_group_name  = azurerm_resource_group.main.name
-  virtual_network_name = azurerm_virtual_network.main.name
-  address_prefixes     = ["10.0.1.0/24"]
-
-  delegation {
-    name = "databricks-delegation-public"
-    service_delegation {
-      name = "Microsoft.Databricks/workspaces"
-      actions = [
-        "Microsoft.Network/virtualNetworks/subnets/join/action",
-        "Microsoft.Network/virtualNetworks/subnets/prepareNetworkPolicies/action",
-        "Microsoft.Network/virtualNetworks/subnets/unprepareNetworkPolicies/action"
-      ]
-    }
-  }
-}
-
-# Create Databricks Private Subnet
-resource "azurerm_subnet" "private" {
-  name                 = "snet-databricks-private-${var.environment}"
-  resource_group_name  = azurerm_resource_group.main.name
-  virtual_network_name = azurerm_virtual_network.main.name
-  address_prefixes     = ["10.0.2.0/24"]
-
-  delegation {
-    name = "databricks-delegation-private"
-    service_delegation {
-      name = "Microsoft.Databricks/workspaces"
-      actions = [
-        "Microsoft.Network/virtualNetworks/subnets/join/action",
-        "Microsoft.Network/virtualNetworks/subnets/prepareNetworkPolicies/action",
-        "Microsoft.Network/virtualNetworks/subnets/unprepareNetworkPolicies/action"
-      ]
-    }
-  }
-}
-
-# Network Security Group for public subnet
-resource "azurerm_network_security_group" "public" {
-  name                = "nsg-databricks-public-${var.environment}-${random_string.suffix.result}"
-  location            = azurerm_resource_group.main.location
-  resource_group_name = azurerm_resource_group.main.name
-
-  tags = local.common_tags
-}
-
-# Network Security Group for private subnet
-resource "azurerm_network_security_group" "private" {
-  name                = "nsg-databricks-private-${var.environment}-${random_string.suffix.result}"
-  location            = azurerm_resource_group.main.location
-  resource_group_name = azurerm_resource_group.main.name
-
-  tags = local.common_tags
-}
-
-# Associate NSG with public subnet
-resource "azurerm_subnet_network_security_group_association" "public" {
-  subnet_id                 = azurerm_subnet.public.id
-  network_security_group_id = azurerm_network_security_group.public.id
-}
-
-# Associate NSG with private subnet
-resource "azurerm_subnet_network_security_group_association" "private" {
-  subnet_id                 = azurerm_subnet.private.id
-  network_security_group_id = azurerm_network_security_group.private.id
-}
-
 # Create Storage Account for Unity Catalog Metastore
 resource "azurerm_storage_account" "unity_catalog" {
   name                     = "st${replace(var.environment, "-", "")}uc${random_string.suffix.result}"
@@ -134,6 +63,7 @@ resource "azurerm_storage_account" "unity_catalog" {
   account_replication_type = "LRS"
   account_kind             = "StorageV2"
   is_hns_enabled           = true # Hierarchical namespace for Data Lake Gen2
+  shared_access_key_enabled = false # Disable key-based authentication, use Azure AD only
 
   tags = local.common_tags
 }
@@ -141,7 +71,7 @@ resource "azurerm_storage_account" "unity_catalog" {
 # Create Storage Container for Unity Catalog
 resource "azurerm_storage_container" "unity_catalog" {
   name                  = "unity-catalog"
-  storage_account_name  = azurerm_storage_account.unity_catalog.name
+  storage_account_id    = azurerm_storage_account.unity_catalog.id
   container_access_type = "private"
 }
 
@@ -153,7 +83,6 @@ resource "azurerm_key_vault" "main" {
   tenant_id           = data.azurerm_client_config.current.tenant_id
   sku_name            = "standard"
 
-  enable_rbac_authorization = true
   purge_protection_enabled  = false
 
   tags = local.common_tags
@@ -168,29 +97,15 @@ resource "azurerm_user_assigned_identity" "databricks" {
   tags = local.common_tags
 }
 
-# Create Databricks Workspace
+# Create Databricks Workspace (using public endpoint - no custom VNet injection)
 resource "azurerm_databricks_workspace" "main" {
-  name                = "databricks-${var.environment}-${random_string.suffix.result}"
-  resource_group_name = azurerm_resource_group.main.name
-  location            = azurerm_resource_group.main.location
-  sku                 = var.databricks_sku
-
-  custom_parameters {
-    no_public_ip        = var.no_public_ip
-    public_subnet_name  = azurerm_subnet.public.name
-    private_subnet_name = azurerm_subnet.private.name
-    virtual_network_id  = azurerm_virtual_network.main.id
-
-    public_subnet_network_security_group_association_id  = azurerm_subnet_network_security_group_association.public.id
-    private_subnet_network_security_group_association_id = azurerm_subnet_network_security_group_association.private.id
-  }
+  name                        = "databricks-${var.environment}-${random_string.suffix.result}"
+  resource_group_name         = azurerm_resource_group.main.name
+  location                    = azurerm_resource_group.main.location
+  sku                         = var.databricks_sku
+  public_network_access_enabled = true
 
   tags = local.common_tags
-
-  depends_on = [
-    azurerm_subnet_network_security_group_association.public,
-    azurerm_subnet_network_security_group_association.private
-  ]
 }
 
 # Get current client configuration

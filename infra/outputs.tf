@@ -26,7 +26,7 @@ output "databricks_workspace_name" {
 
 output "unity_catalog_metastore_id" {
   description = "ID of the Unity Catalog metastore"
-  value       = var.enable_unity_catalog ? databricks_metastore.unity_catalog.id : null
+  value       = var.enable_unity_catalog ? local.metastore_id : null
 }
 
 output "unity_catalog_storage_account_name" {
@@ -64,30 +64,15 @@ output "managed_identity_client_id" {
   value       = azurerm_user_assigned_identity.databricks.client_id
 }
 
-output "virtual_network_id" {
-  description = "ID of the virtual network"
-  value       = azurerm_virtual_network.main.id
-}
-
-output "public_subnet_id" {
-  description = "ID of the public subnet"
-  value       = azurerm_subnet.public.id
-}
-
-output "private_subnet_id" {
-  description = "ID of the private subnet"
-  value       = azurerm_subnet.private.id
-}
-
 output "unity_catalog_cluster_id" {
   description = "ID of the Unity Catalog cluster"
   value       = databricks_cluster.unity_catalog_cluster.id
 }
 
-output "shared_cluster_id" {
-  description = "ID of the shared cluster"
-  value       = databricks_cluster.shared_cluster.id
-}
+# output "shared_cluster_id" {
+#   description = "ID of the shared cluster"
+#   value       = databricks_cluster.shared_cluster.id
+# }
 
 output "sql_warehouse_id" {
   description = "ID of the SQL warehouse"
@@ -101,28 +86,28 @@ output "access_connector_id" {
 
 output "main_catalog_name" {
   description = "Name of the main Unity Catalog catalog"
-  value       = var.enable_unity_catalog ? databricks_catalog.main.name : null
+  value       = var.enable_unity_catalog ? local.main_catalog_name : null
 }
 
-output "analytics_workspace_id" {
-  description = "ID of the Analytics Databricks workspace"
-  value       = azurerm_databricks_workspace.analytics.id
-}
+# output "analytics_workspace_id" {
+#   description = "ID of the Analytics Databricks workspace"
+#   value       = azurerm_databricks_workspace.analytics.id
+# }
 
-output "analytics_workspace_url" {
-  description = "URL of the Analytics Databricks workspace"
-  value       = "https://${azurerm_databricks_workspace.analytics.workspace_url}/"
-}
+# output "analytics_workspace_url" {
+#   description = "URL of the Analytics Databricks workspace"
+#   value       = "https://${azurerm_databricks_workspace.analytics.workspace_url}/"
+# }
 
-output "analytics_workspace_name" {
-  description = "Name of the Analytics Databricks workspace"
-  value       = azurerm_databricks_workspace.analytics.name
-}
+# output "analytics_workspace_name" {
+#   description = "Name of the Analytics Databricks workspace"
+#   value       = azurerm_databricks_workspace.analytics.name
+# }
 
-output "shared_catalog_name" {
-  description = "Name of the shared Unity Catalog catalog"
-  value       = var.enable_unity_catalog ? databricks_catalog.shared.name : null
-}
+# output "shared_catalog_name" {
+#   description = "Name of the shared Unity Catalog catalog"
+#   value       = var.enable_unity_catalog ? databricks_catalog.shared.name : null
+# }
 
 output "deployment_summary" {
   description = "Summary of deployed resources"
@@ -136,13 +121,13 @@ output "deployment_summary" {
     primary_workspace_url = "https://${azurerm_databricks_workspace.main.workspace_url}/"
     
     # Analytics Workspace (Data Science)
-    analytics_workspace     = azurerm_databricks_workspace.analytics.name
-    analytics_workspace_url = "https://${azurerm_databricks_workspace.analytics.workspace_url}/"
+    # analytics_workspace     = azurerm_databricks_workspace.analytics.name
+    # analytics_workspace_url = "https://${azurerm_databricks_workspace.analytics.workspace_url}/"
     
     # Unity Catalog
     unity_catalog_enabled = var.enable_unity_catalog
-    metastore_id         = var.enable_unity_catalog ? databricks_metastore.unity_catalog.id : null
-    shared_catalog       = var.enable_unity_catalog ? databricks_catalog.shared.name : null
+    metastore_id         = var.enable_unity_catalog ? local.metastore_id : null
+    # shared_catalog       = var.enable_unity_catalog ? databricks_catalog.shared.name : null
     
     # Resources
     workspace_count      = 2
