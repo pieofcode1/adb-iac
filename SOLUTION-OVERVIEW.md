@@ -26,12 +26,12 @@ This repository now provides a **complete, production-ready solution** for Azure
 - ✅ **SQL Warehouse** - For BI tool connectivity
 
 - ✅ **Supporting Infrastructure:**
-  - Virtual Network with dedicated subnets
   - Storage Account (ADLS Gen2) for Unity Catalog
   - Key Vault for secrets
   - Managed Identity for secure access
-  - Network Security Groups
   - Log Analytics for monitoring
+
+> **Note**: This solution uses **public endpoints** for simplicity. For production deployments, consider adding VNet injection, private endpoints, and Network Security Groups.
 
 ### **2. Sample Notebooks (Python/SQL)**
 

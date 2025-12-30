@@ -1,9 +1,9 @@
 #!/usr/bin/env powershell
-# Lab Validation Script - Validates lab completion and resource deployment
+# Lab Validation Script - Validates lab completion for Unity Catalog Multi-Workspace Labs
 
 param(
     [Parameter(Mandatory=$true)]
-    [ValidateSet("lab-01", "lab-02", "lab-03", "lab-04", "lab-05", "lab-06", "lab-07", "lab-08", "lab-09", "lab-10", "lab-11", "lab-12")]
+    [ValidateSet("lab-01", "lab-02", "lab-03", "all")]
     [string]$LabNumber,
     
     [Parameter(Mandatory=$false)]
@@ -25,181 +25,214 @@ function Write-ColorOutput {
 }
 
 function Test-Prerequisites {
-    Write-ColorOutput "🔍 Checking Prerequisites..." $Blue
+    Write-ColorOutput "`n🔍 Checking Prerequisites..." $Blue
+    
+    $allPassed = $true
     
     # Check Azure CLI
     try {
         $azVersion = az version --output json | ConvertFrom-Json
-        Write-ColorOutput "✅ Azure CLI: $($azVersion.'azure-cli')" $Green
+        Write-ColorOutput "  ✅ Azure CLI: $($azVersion.'azure-cli')" $Green
     }
     catch {
-        Write-ColorOutput "❌ Azure CLI not found or not working" $Red
-        return $false
+        Write-ColorOutput "  ❌ Azure CLI not found or not working" $Red
+        $allPassed = $false
     }
     
     # Check Terraform
     try {
         $tfVersion = terraform version -json | ConvertFrom-Json
-        Write-ColorOutput "✅ Terraform: $($tfVersion.terraform_version)" $Green
+        Write-ColorOutput "  ✅ Terraform: $($tfVersion.terraform_version)" $Green
     }
     catch {
-        Write-ColorOutput "❌ Terraform not found or not working" $Red
-        return $false
+        Write-ColorOutput "  ❌ Terraform not found or not working" $Red
+        $allPassed = $false
     }
     
     # Check Azure Authentication
     try {
         $account = az account show --output json | ConvertFrom-Json
-        Write-ColorOutput "✅ Azure Account: $($account.name)" $Green
+        Write-ColorOutput "  ✅ Azure Account: $($account.name)" $Green
     }
     catch {
-        Write-ColorOutput "❌ Not authenticated with Azure. Run 'az login'" $Red
-        return $false
+        Write-ColorOutput "  ❌ Not authenticated with Azure. Run 'az login'" $Red
+        $allPassed = $false
     }
     
-    return $true
+    return $allPassed
 }
 
 function Test-Lab01 {
-    Write-ColorOutput "🧪 Validating Lab 1: Environment Setup" $Blue
+    Write-ColorOutput "`n🧪 Validating Lab 1: Infrastructure Deployment" $Blue
+    Write-ColorOutput "=" * 50
     
-    if (-not (Test-Prerequisites)) {
+    $passed = 0
+    $failed = 0
+    
+    # Check prerequisites
+    if (Test-Prerequisites) {
+        $passed++
+    } else {
+        $failed++
         return $false
     }
     
-    Write-ColorOutput "✅ Lab 1 validation passed!" $Green
-    return $true
+    # Navigate to infra directory
+    $infraPath = Join-Path (Split-Path $PSScriptRoot -Parent) "infra"
+    if (-not (Test-Path $infraPath)) {
+        $infraPath = Join-Path $PSScriptRoot "..\infra"
+    }
+    
+    Push-Location $infraPath
+    
+    try {
+        # Check Terraform state
+        Write-ColorOutput "`n📋 Checking Terraform Deployment..." $Blue
+        
+        if (Test-Path "terraform.tfstate") {
+            Write-ColorOutput "  ✅ Terraform state file exists" $Green
+            $passed++
+        } else {
+            Write-ColorOutput "  ❌ Terraform state file not found. Run 'terraform apply'" $Red
+            $failed++
+            Pop-Location
+            return $false
+        }
+        
+        # Check for workspace URLs in outputs
+        try {
+            $primaryUrl = terraform output -raw databricks_workspace_url 2>$null
+            if ($primaryUrl) {
+                Write-ColorOutput "  ✅ Primary Workspace URL: $primaryUrl" $Green
+                $passed++
+            } else {
+                Write-ColorOutput "  ❌ Primary Workspace URL not found in outputs" $Red
+                $failed++
+            }
+        } catch {
+            Write-ColorOutput "  ❌ Could not get Primary Workspace URL" $Red
+            $failed++
+        }
+        
+        try {
+            $analyticsUrl = terraform output -raw analytics_workspace_url 2>$null
+            if ($analyticsUrl) {
+                Write-ColorOutput "  ✅ Analytics Workspace URL: $analyticsUrl" $Green
+                $passed++
+            } else {
+                Write-ColorOutput "  ⚠️ Analytics Workspace URL not found (may be named differently)" $Yellow
+            }
+        } catch {
+            Write-ColorOutput "  ⚠️ Could not get Analytics Workspace URL" $Yellow
+        }
+        
+        # Check resource group
+        try {
+            $rgName = terraform output -raw resource_group_name 2>$null
+            if ($rgName) {
+                $rg = az group show --name $rgName --output json 2>$null | ConvertFrom-Json
+                if ($rg) {
+                    Write-ColorOutput "  ✅ Resource Group exists: $rgName" $Green
+                    $passed++
+                }
+            }
+        } catch {
+            Write-ColorOutput "  ⚠️ Could not verify Resource Group" $Yellow
+        }
+        
+    } finally {
+        Pop-Location
+    }
+    
+    # Summary
+    Write-ColorOutput "`n📊 Lab 1 Validation Summary" $Blue
+    Write-ColorOutput "  Passed: $passed" $Green
+    Write-ColorOutput "  Failed: $failed" $(if ($failed -gt 0) { $Red } else { $Green })
+    
+    return ($failed -eq 0)
 }
 
 function Test-Lab02 {
-    param([string]$ResourceGroupName)
+    Write-ColorOutput "`n🧪 Validating Lab 2: Data Engineering (Primary Workspace)" $Blue
+    Write-ColorOutput "=" * 50
     
-    Write-ColorOutput "🧪 Validating Lab 2: Basic Azure Resources" $Blue
+    Write-ColorOutput "`n📋 Manual Verification Required:" $Yellow
+    Write-ColorOutput "  1. Open the Primary Workspace URL" 
+    Write-ColorOutput "  2. Navigate to Catalog -> shared_data -> samples"
+    Write-ColorOutput "  3. Verify these tables exist:"
+    Write-ColorOutput "     - customers (10 records)"
+    Write-ColorOutput "     - products (10 records)"
+    Write-ColorOutput "     - transactions (12 records)"
+    Write-ColorOutput "  4. Verify the customer_transactions view exists"
     
-    if (-not (Test-Prerequisites)) {
-        return $false
-    }
+    Write-ColorOutput "`n📝 Validation Checklist:" $Blue
+    Write-ColorOutput "  [ ] Notebook 01-data-ingestion-primary-workspace.ipynb imported"
+    Write-ColorOutput "  [ ] Notebook executed successfully (all cells)"
+    Write-ColorOutput "  [ ] Tables visible in Catalog Explorer"
+    Write-ColorOutput "  [ ] Can query tables with: SELECT * FROM shared_data.samples.customers"
     
-    if ([string]::IsNullOrEmpty($ResourceGroupName)) {
-        # Try to get from Terraform output
-        try {
-            $ResourceGroupName = terraform output -raw resource_group_name
-        }
-        catch {
-            Write-ColorOutput "❌ Could not determine resource group name. Provide -ResourceGroupName parameter." $Red
-            return $false
-        }
-    }
-    
-    # Check if resource group exists
-    try {
-        $rg = az group show --name $ResourceGroupName --output json | ConvertFrom-Json
-        Write-ColorOutput "✅ Resource Group: $($rg.name)" $Green
-    }
-    catch {
-        Write-ColorOutput "❌ Resource Group '$ResourceGroupName' not found" $Red
-        return $false
-    }
-    
-    # Check expected resources
-    $expectedResources = @(
-        "Microsoft.Network/virtualNetworks",
-        "Microsoft.Network/networkSecurityGroups", 
-        "Microsoft.Storage/storageAccounts",
-        "Microsoft.KeyVault/vaults",
-        "Microsoft.ManagedIdentity/userAssignedIdentities"
-    )
-    
-    try {
-        $resources = az resource list --resource-group $ResourceGroupName --output json | ConvertFrom-Json
-        
-        foreach ($expectedType in $expectedResources) {
-            $found = $resources | Where-Object { $_.type -eq $expectedType }
-            if ($found) {
-                Write-ColorOutput "✅ Found $expectedType" $Green
-            }
-            else {
-                Write-ColorOutput "❌ Missing $expectedType" $Red
-                return $false
-            }
-        }
-    }
-    catch {
-        Write-ColorOutput "❌ Error checking resources in resource group" $Red
-        return $false
-    }
-    
-    Write-ColorOutput "✅ Lab 2 validation passed!" $Green
-    return $true
+    $response = Read-Host "`nDid Lab 2 pass validation? (y/n)"
+    return ($response -eq 'y' -or $response -eq 'Y')
 }
 
-function Get-LabInstructions {
-    param([string]$LabNumber)
+function Test-Lab03 {
+    Write-ColorOutput "`n🧪 Validating Lab 3: Analytics & Cross-Workspace Access" $Blue
+    Write-ColorOutput "=" * 50
     
-    Write-ColorOutput "📚 Lab $LabNumber Instructions:" $Blue
+    Write-ColorOutput "`n📋 Manual Verification Required:" $Yellow
+    Write-ColorOutput "  1. Open the Analytics Workspace URL (different from Primary!)"
+    Write-ColorOutput "  2. Verify you can see the shared_data catalog"
+    Write-ColorOutput "  3. Query tables created in Lab 2:"
+    Write-ColorOutput "     SELECT * FROM shared_data.samples.customers"
+    Write-ColorOutput "  4. Verify customer_summary table was created"
     
-    switch ($LabNumber) {
-        "lab-01" {
-            Write-ColorOutput "1. Install Azure CLI and Terraform" $Yellow
-            Write-ColorOutput "2. Authenticate with Azure (az login)" $Yellow
-            Write-ColorOutput "3. Verify tools work correctly" $Yellow
-        }
-        "lab-02" {
-            Write-ColorOutput "1. Create basic Azure resources with Terraform" $Yellow
-            Write-ColorOutput "2. Deploy VNet, storage, and Key Vault" $Yellow
-            Write-ColorOutput "3. Verify all resources are created" $Yellow
-        }
-        default {
-            Write-ColorOutput "Instructions for $LabNumber coming soon!" $Yellow
-        }
-    }
-}
-
-function Show-NextSteps {
-    param([string]$LabNumber)
+    Write-ColorOutput "`n📝 Validation Checklist:" $Blue
+    Write-ColorOutput "  [ ] Connected to Analytics workspace (NOT Primary)"
+    Write-ColorOutput "  [ ] Notebook 02-cross-workspace-access-analytics.ipynb imported"
+    Write-ColorOutput "  [ ] Can query tables from Primary workspace"
+    Write-ColorOutput "  [ ] customer_summary table created in shared_data.samples"
+    Write-ColorOutput "  [ ] Analytics queries executed successfully"
     
-    Write-ColorOutput "🚀 Next Steps:" $Blue
+    Write-ColorOutput "`n🎯 Key Verification:" $Green
+    Write-ColorOutput "  The same data from Lab 2 should be accessible here"
+    Write-ColorOutput "  WITHOUT any data copy or ETL process!"
     
-    switch ($LabNumber) {
-        "lab-01" {
-            Write-ColorOutput "Proceed to Lab 2: Basic Azure Resources" $Green
-        }
-        "lab-02" {
-            Write-ColorOutput "Proceed to Lab 3: Azure Databricks Workspace" $Green
-        }
-        default {
-            Write-ColorOutput "Check the lab series README for next steps" $Green
-        }
-    }
+    $response = Read-Host "`nDid Lab 3 pass validation? (y/n)"
+    return ($response -eq 'y' -or $response -eq 'Y')
 }
 
 # Main execution
-Write-ColorOutput "🎯 Azure Databricks Lab Validation Tool" $Blue
-Write-ColorOutput "Lab: $LabNumber" $Blue
-Write-ColorOutput "----------------------------------------" $Blue
+Write-ColorOutput "`n========================================" $Blue
+Write-ColorOutput "  Unity Catalog Multi-Workspace Labs" $Blue  
+Write-ColorOutput "  Validation Script" $Blue
+Write-ColorOutput "========================================`n" $Blue
 
-$validationPassed = $false
+$result = $false
 
 switch ($LabNumber) {
-    "lab-01" {
-        $validationPassed = Test-Lab01
-    }
-    "lab-02" {
-        $validationPassed = Test-Lab02 -ResourceGroupName $ResourceGroupName
-    }
-    default {
-        Write-ColorOutput "❌ Validation for $LabNumber is not yet implemented" $Red
-        Get-LabInstructions -LabNumber $LabNumber
-        exit 1
+    "lab-01" { $result = Test-Lab01 }
+    "lab-02" { $result = Test-Lab02 }
+    "lab-03" { $result = Test-Lab03 }
+    "all" {
+        $lab1 = Test-Lab01
+        $lab2 = Test-Lab02
+        $lab3 = Test-Lab03
+        
+        Write-ColorOutput "`n========================================" $Blue
+        Write-ColorOutput "  Overall Results" $Blue
+        Write-ColorOutput "========================================" $Blue
+        Write-ColorOutput "  Lab 1 (Infrastructure): $(if ($lab1) { '✅ PASSED' } else { '❌ FAILED' })" $(if ($lab1) { $Green } else { $Red })
+        Write-ColorOutput "  Lab 2 (Data Engineering): $(if ($lab2) { '✅ PASSED' } else { '❌ FAILED' })" $(if ($lab2) { $Green } else { $Red })
+        Write-ColorOutput "  Lab 3 (Analytics): $(if ($lab3) { '✅ PASSED' } else { '❌ FAILED' })" $(if ($lab3) { $Green } else { $Red })
+        
+        $result = $lab1 -and $lab2 -and $lab3
     }
 }
 
-if ($validationPassed) {
-    Write-ColorOutput "🎉 Congratulations! Lab $LabNumber completed successfully!" $Green
-    Show-NextSteps -LabNumber $LabNumber
+if ($result) {
+    Write-ColorOutput "`n🎉 Validation Passed!" $Green
+} else {
+    Write-ColorOutput "`n❌ Validation Failed - Review the issues above" $Red
 }
-else {
-    Write-ColorOutput "❌ Lab $LabNumber validation failed. Please review the instructions." $Red
-    Get-LabInstructions -LabNumber $LabNumber
-    exit 1
-}
+
+exit $(if ($result) { 0 } else { 1 })

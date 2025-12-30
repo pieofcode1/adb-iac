@@ -1,103 +1,127 @@
-# Azure Databricks with Unity Catalog - Hands-On Lab Series
+# Unity Catalog Multi-Workspace Hands-On Labs
 
-This lab series provides a step-by-step guide to building and understanding Azure Databricks infrastructure with Unity Catalog using Terraform.
+This lab series guides you through using two Azure Databricks workspaces with a shared Unity Catalog metastore to demonstrate cross-workspace data engineering and analytics capabilities.
 
 ## 🎯 **Lab Objectives**
 
-By completing this lab series, you will:
-- Understand Azure Databricks architecture and components
-- Learn Infrastructure as Code best practices with Terraform
-- Master Unity Catalog setup and configuration
-- Implement security and governance best practices
-- Build production-ready Databricks environments
+By completing these labs, you will:
+- Deploy multi-workspace Databricks infrastructure using Terraform
+- Understand Unity Catalog's cross-workspace data sharing capabilities
+- Perform data engineering activities in a primary workspace
+- Access and analyze shared data from a secondary analytics workspace
+- Experience centralized governance without data duplication
 
-## 📚 **Lab Structure Overview**
+## 🏗️ **Architecture Overview**
 
-### **Phase 1: Foundation (Labs 1-3)**
-- **Lab 1**: Environment Setup & Prerequisites
-- **Lab 2**: Basic Azure Resources (VNet, Storage, Key Vault)
-- **Lab 3**: Azure Databricks Workspace Creation
+```
+┌─────────────────────────────────────────────────────────────┐
+│                   Unity Catalog Metastore                    │
+│              (Account-Level, Cross-Workspace)                │
+└──────────────────────┬──────────────────────┬────────────────┘
+                       │                      │
+           ┌───────────▼─────────┐  ┌────────▼────────────┐
+           │  PRIMARY WORKSPACE  │  │ ANALYTICS WORKSPACE │
+           │  (Data Engineering) │  │  (Data Science/ML)  │
+           │                     │  │                     │
+           │  LAB 2: Create      │  │  LAB 3: Query &     │
+           │  Delta Tables       │  │  Analyze Data       │
+           └─────────────────────┘  └─────────────────────┘
+                       │                      │
+                       │  Shared Catalog      │
+                       └──────────┬───────────┘
+                                  │
+                    ┌─────────────▼─────────────┐
+                    │  shared_data.samples.*    │
+                    │  - customers              │
+                    │  - products               │
+                    │  - transactions           │
+                    └───────────────────────────┘
+```
 
-### **Phase 2: Core Databricks (Labs 4-6)**
-- **Lab 4**: Databricks Clusters & Configuration
-- **Lab 5**: Security & Network Configuration
-- **Lab 6**: Monitoring & Logging Setup
+## 📚 **Lab Structure**
 
-### **Phase 3: Unity Catalog (Labs 7-9)**
-- **Lab 7**: Unity Catalog Metastore Setup
-- **Lab 8**: Catalogs, Schemas & Permissions
-- **Lab 9**: Data Access & Governance
-
-### **Phase 4: Advanced & Production (Labs 10-12)**
-- **Lab 10**: Multi-Environment Deployment
-- **Lab 11**: CI/CD Pipeline Integration
-- **Lab 12**: Disaster Recovery & Backup
-
-## 🎓 **Learning Path Recommendations**
-
-### **Beginner Track** (8-10 hours)
-Labs 1-6 + Lab 8 (Skip Unity Catalog complexity)
-
-### **Intermediate Track** (12-15 hours)
-Labs 1-9 (Complete Unity Catalog implementation)
-
-### **Advanced Track** (16-20 hours)
-All Labs 1-12 (Production-ready implementation)
+| Lab | Title | Duration | Focus |
+|-----|-------|----------|-------|
+| **Lab 1** | Infrastructure Deployment | 30-45 min | Deploy Terraform infrastructure |
+| **Lab 2** | Data Engineering (Workspace 1) | 30-45 min | Create datasets in Unity Catalog |
+| **Lab 3** | Analytics & Sharing (Workspace 2) | 30-45 min | Cross-workspace data access |
 
 ## 📋 **Prerequisites**
 
-- Basic understanding of Azure cloud concepts
-- Familiarity with Terraform basics
-- Azure subscription with appropriate permissions
-- Visual Studio Code or similar editor
-- Git for version control
-
-## 🛠️ **Required Tools**
-
-- Azure CLI
+### **Required Tools**
+- Azure CLI (authenticated to your subscription)
 - Terraform >= 1.0
-- PowerShell or Bash
-- Git
-- Text editor (VS Code recommended)
+- Azure subscription with Contributor permissions
+- Databricks account with Unity Catalog enabled
+
+### **Required Permissions**
+- Ability to create Resource Groups in Azure
+- Databricks Account Admin (for Unity Catalog setup)
+- Azure AD permissions for service principals (if applicable)
 
 ## 🚀 **Quick Start**
 
-1. **Clone the repository:**
-   ```bash
-   git clone <repository-url>
-   cd adb-bcdr/labs
-   ```
+```powershell
+# 1. Clone the repository
+git clone <repository-url>
+cd adb-iac
 
-2. **Start with Lab 1:**
-   ```bash
-   cd lab-01-setup
-   ```
+# 2. Start with Lab 1 to deploy infrastructure
+cd labs/lab-01-infrastructure
 
-3. **Follow the step-by-step guide in each lab directory**
+# 3. Follow the step-by-step guide
+```
 
-## 📖 **Lab Format**
+## 🎓 **Learning Path**
 
-Each lab includes:
-- **README.md** - Step-by-step instructions
-- **Terraform files** - Infrastructure code for that lab
-- **Validation scripts** - Automated testing
-- **Exercise tasks** - Hands-on activities
-- **Troubleshooting guide** - Common issues and solutions
+### **Recommended Flow**
 
-## 🎯 **Success Criteria**
+1. **Lab 1: Infrastructure Deployment**
+   - Deploy both Databricks workspaces
+   - Set up Unity Catalog metastore
+   - Configure networking and storage
 
-After each lab, you should be able to:
-- Explain the components implemented
-- Reproduce the deployment independently
-- Troubleshoot common issues
-- Apply security best practices
+2. **Lab 2: Data Engineering**
+   - Connect to the Primary workspace
+   - Create sample Delta tables
+   - Write data to Unity Catalog
 
-## 📞 **Support**
+3. **Lab 3: Analytics & Cross-Workspace Access**
+   - Connect to the Analytics workspace
+   - Access data created in Lab 2 (no data copy!)
+   - Perform analytics and create derived tables
 
-- Check individual lab troubleshooting sections
-- Review the main infrastructure documentation
-- Create issues for questions or problems
+## 📖 **Key Concepts Covered**
 
----
+### **Unity Catalog**
+- Three-level namespace: `catalog.schema.table`
+- Cross-workspace data sharing
+- Centralized permissions and governance
+- Data lineage and discovery
 
-**Time Investment**: Plan 1-2 hours per lab for thorough understanding and completion.
+### **Delta Lake**
+- ACID transactions
+- Schema enforcement
+- Time travel and versioning
+- Partitioning strategies
+
+### **Multi-Workspace Architecture**
+- Workspace isolation for different teams
+- Shared governance with Unity Catalog
+- Zero data duplication across workspaces
+
+## 📞 **Troubleshooting**
+
+Common issues and solutions are documented in each lab. For additional help:
+- Check the [DEMO-GUIDE.md](../src/notebooks/DEMO-GUIDE.md) for detailed workflows
+- Review the [SOLUTION-OVERVIEW.md](../SOLUTION-OVERVIEW.md) for architecture details
+- Ensure your Azure subscription has the required quotas
+
+## ✅ **Success Criteria**
+
+After completing all labs, you should be able to:
+- Explain the benefits of Unity Catalog for multi-workspace environments
+- Deploy Databricks infrastructure using Terraform
+- Create and manage Delta tables in Unity Catalog
+- Access shared data from different workspaces
+- Demonstrate data governance without data duplication

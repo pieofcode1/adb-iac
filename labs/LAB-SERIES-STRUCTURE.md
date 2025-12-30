@@ -1,210 +1,185 @@
-# Complete Lab Series Structure
+# Lab Series Structure
 
-## 📚 **Full Lab Series Overview**
+## 📚 **Overview**
 
-Here's the complete structure for the Azure Databricks with Unity Catalog lab series:
+This lab series focuses on demonstrating Azure Databricks multi-workspace architecture with Unity Catalog for cross-workspace data sharing. The labs guide users through deploying infrastructure, performing data engineering, and accessing shared data from different workspaces.
 
-### **Phase 1: Foundation Labs (1-3)**
+## 🎯 **Lab Series Goals**
 
-#### **Lab 1: Environment Setup & Prerequisites** ✅ *Created*
-- Tool installation (Azure CLI, Terraform, VS Code)
-- Azure authentication setup
-- Development environment preparation
-- Basic validation and testing
-
-#### **Lab 2: Basic Azure Resources** ✅ *Created*
-- Resource Group creation
-- Virtual Network and subnet configuration
-- Storage Account (ADLS Gen2) for Unity Catalog
-- Key Vault for secrets management
-- Managed Identity setup
-
-#### **Lab 3: Azure Databricks Workspace** 🚧 *To Create*
-- Databricks workspace deployment
-- VNet injection configuration
-- Custom parameters setup
-- Initial workspace validation
-
-### **Phase 2: Core Databricks (4-6)**
-
-#### **Lab 4: Databricks Clusters & Configuration** 🚧 *To Create*
-- Basic cluster creation
-- Unity Catalog-enabled clusters
-- Cluster policies and configuration
-- Performance optimization settings
-
-#### **Lab 5: Security & Network Configuration** 🚧 *To Create*
-- Network Security Groups rules
-- Private endpoints configuration
-- IP access restrictions
-- Audit logging setup
-
-#### **Lab 6: Monitoring & Logging Setup** 🚧 *To Create*
-- Log Analytics workspace integration
-- Diagnostic settings configuration
-- Custom metrics and alerts
-- Cost monitoring setup
-
-### **Phase 3: Unity Catalog (7-9)**
-
-#### **Lab 7: Unity Catalog Metastore Setup** 🚧 *To Create*
-- Account-level metastore creation
-- Access connector configuration
-- Storage access setup
-- Metastore assignment to workspace
-
-#### **Lab 8: Catalogs, Schemas & Permissions** 🚧 *To Create*
-- Catalog and schema creation
-- User and group permissions
-- Data access policies
-- Cross-workspace sharing
-
-#### **Lab 9: Data Access & Governance** 🚧 *To Create*
-- External locations setup
-- Data lineage and discovery
-- Column-level security
-- Data classification and tagging
-
-### **Phase 4: Advanced & Production (10-12)**
-
-#### **Lab 10: Multi-Environment Deployment** 🚧 *To Create*
-- Environment-specific configurations
-- Terraform workspaces
-- Variable management strategies
-- State management best practices
-
-#### **Lab 11: CI/CD Pipeline Integration** 🚧 *To Create*
-- Azure DevOps integration
-- GitHub Actions workflows
-- Automated testing and validation
-- Deployment automation
-
-#### **Lab 12: Disaster Recovery & Backup** 🚧 *To Create*
-- Cross-region replication
-- Backup and restore procedures
-- Business continuity planning
-- Recovery testing
-
-## 🛠️ **Lab Development Template**
-
-### **Each Lab Should Include:**
-
-1. **README.md Structure:**
-   ```markdown
-   # Lab X: [Title]
-   - Estimated Time
-   - Difficulty Level  
-   - Prerequisites
-   - Objectives
-   - Step-by-step instructions
-   - Validation exercises
-   - Troubleshooting guide
-   - Next steps
-   ```
-
-2. **Infrastructure Files:**
-   - `main.tf` - Core infrastructure
-   - `variables.tf` - Input variables
-   - `outputs.tf` - Output values
-   - `terraform.tfvars` - Default values
-
-3. **Validation:**
-   - PowerShell validation script
-   - Automated testing
-   - Manual verification steps
-
-4. **Documentation:**
-   - Architecture diagrams
-   - Best practices notes
-   - Common issues and solutions
-
-## 🎯 **Learning Progression**
-
-### **Beginner Path (Labs 1-6)**
-- Focus on infrastructure basics
-- Understanding Azure resources
-- Basic Databricks concepts
-- Security fundamentals
-
-### **Intermediate Path (Labs 1-9)**
-- Complete Unity Catalog implementation
-- Advanced security configurations
-- Data governance concepts
-- Multi-user scenarios
-
-### **Advanced Path (Labs 1-12)**
-- Production-ready deployments
-- CI/CD automation
-- Disaster recovery planning
-- Enterprise governance
-
-## 📊 **Success Metrics**
-
-### **Lab Completion Tracking:**
-- Time to complete each lab
-- Number of validation errors
-- Common troubleshooting issues
-- Feedback and improvement suggestions
-
-### **Knowledge Assessment:**
-- Pre/post lab quizzes
-- Hands-on exercises
-- Real-world scenarios
-- Best practices application
-
-## 🔄 **Iterative Development Approach**
-
-### **Phase 1: Core Labs (Weeks 1-2)**
-1. Complete Labs 1-3 with full documentation
-2. Test with beta users
-3. Gather feedback and iterate
-
-### **Phase 2: Expand Content (Weeks 3-4)**
-1. Develop Labs 4-6
-2. Add validation scripts
-3. Create troubleshooting guides
-
-### **Phase 3: Advanced Features (Weeks 5-6)**
-1. Build Labs 7-9 (Unity Catalog focus)
-2. Develop advanced scenarios
-3. Create assessment materials
-
-### **Phase 4: Production Ready (Weeks 7-8)**
-1. Complete Labs 10-12
-2. Add CI/CD examples
-3. Final testing and documentation
-
-## 📚 **Additional Resources**
-
-### **Supporting Materials:**
-- Architecture decision records
-- Best practices documentation
-- Video walkthroughs (optional)
-- Community forum/discussions
-- FAQ and troubleshooting database
-
-### **Integration Options:**
-- Microsoft Learn module integration
-- GitHub repository with releases
-- Docker containers for consistent environments
-- Azure DevTest Labs integration
-
-## 🎉 **Value Proposition**
-
-This lab series provides:
-- **Hands-on Learning** - Practical experience with real infrastructure
-- **Progressive Complexity** - Building knowledge step-by-step
-- **Production Ready** - Real-world applicable skills
-- **Validation Built-in** - Automatic verification of success
-- **Troubleshooting** - Common issues and solutions
-- **Best Practices** - Industry standards and recommendations
+1. Deploy a multi-workspace Databricks environment
+2. Create datasets in a data engineering workspace
+3. Access and analyze data from an analytics workspace
+4. Demonstrate Unity Catalog's cross-workspace capabilities
 
 ---
 
-**Next Action Items:**
-1. ✅ Lab structure designed
-2. ✅ Labs 1-2 created with full content
-3. ✅ Validation framework established
-4. 🚧 Continue with Lab 3-12 development
-5. 🚧 Beta testing with users
-6. 🚧 Feedback integration and improvements
+## **Lab 1: Infrastructure Deployment** ✅
+
+**Duration**: 30-45 minutes  
+**Difficulty**: Intermediate
+
+### **Objectives**
+- Deploy Azure infrastructure using Terraform
+- Create two Databricks workspaces (Primary & Analytics)
+- Set up Unity Catalog metastore
+- Configure shared storage and resources
+
+### **Key Activities**
+1. Review and configure `terraform.tfvars`
+2. Run `terraform init` and `terraform apply`
+3. Verify workspace creation in Azure portal
+4. Note workspace URLs from Terraform outputs
+
+### **Resources Created**
+- Resource Group
+- 2 Databricks Workspaces (public endpoints)
+- Unity Catalog Metastore
+- ADLS Gen2 Storage Account
+- Key Vault
+- Managed Identity
+- Log Analytics Workspace
+
+---
+
+## **Lab 2: Data Engineering (Primary Workspace)** ✅
+
+**Duration**: 30-45 minutes  
+**Difficulty**: Beginner-Intermediate
+
+### **Objectives**
+- Connect to the Primary (Data Engineering) workspace
+- Create sample datasets using PySpark
+- Write Delta tables to Unity Catalog
+- Verify data in the shared catalog
+
+### **Key Activities**
+1. Access Primary workspace URL
+2. Import and run `01-data-ingestion-primary-workspace.ipynb`
+3. Create customer, product, and transaction tables
+4. Create views for cross-workspace access
+
+### **Tables Created**
+| Table | Description | Records |
+|-------|-------------|---------|
+| `shared_data.samples.customers` | Customer profiles | 10 |
+| `shared_data.samples.products` | Product catalog | 10 |
+| `shared_data.samples.transactions` | Sales transactions | 12 |
+
+### **Key Concepts**
+- Unity Catalog three-level namespace
+- Delta Lake table creation
+- Partitioning strategies
+- View creation for lineage
+
+---
+
+## **Lab 3: Analytics & Cross-Workspace Access** ✅
+
+**Duration**: 30-45 minutes  
+**Difficulty**: Beginner-Intermediate
+
+### **Objectives**
+- Connect to the Analytics workspace
+- Access data created in Lab 2 (without data duplication)
+- Perform analytics and create derived datasets
+- Demonstrate governance and permissions
+
+### **Key Activities**
+1. Access Analytics workspace URL
+2. Import and run `02-cross-workspace-access-analytics.ipynb`
+3. Query shared tables from different workspace
+4. Create analytics summaries and ML features
+5. Explore data lineage
+
+### **Key Demonstrations**
+- Zero data duplication between workspaces
+- Instant cross-workspace data access
+- Consistent security and governance
+- Full analytics capabilities on shared data
+
+### **Analytics Performed**
+- Customer segmentation by country
+- Revenue analysis by product category
+- Payment method distribution
+- Customer lifetime value analysis
+- RFM (Recency, Frequency, Monetary) scoring
+
+---
+
+## 📊 **Complete Lab Flow**
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                         LAB 1                                    │
+│                Infrastructure Deployment                         │
+│  ┌──────────────┐  ┌──────────────┐  ┌──────────────────────┐   │
+│  │ Terraform    │→ │ 2 Workspaces │→ │ Unity Catalog        │   │
+│  │ Apply        │  │ Created      │  │ Metastore Setup      │   │
+│  └──────────────┘  └──────────────┘  └──────────────────────┘   │
+└─────────────────────────────────────────────────────────────────┘
+                              │
+                              ▼
+┌─────────────────────────────────────────────────────────────────┐
+│                         LAB 2                                    │
+│              Data Engineering (Primary Workspace)                │
+│  ┌──────────────┐  ┌──────────────┐  ┌──────────────────────┐   │
+│  │ Create       │→ │ Write Delta  │→ │ Tables in            │   │
+│  │ DataFrames   │  │ Tables       │  │ shared_data.samples  │   │
+│  └──────────────┘  └──────────────┘  └──────────────────────┘   │
+└─────────────────────────────────────────────────────────────────┘
+                              │
+                              ▼
+┌─────────────────────────────────────────────────────────────────┐
+│                         LAB 3                                    │
+│            Analytics (Analytics Workspace)                       │
+│  ┌──────────────┐  ┌──────────────┐  ┌──────────────────────┐   │
+│  │ Access       │→ │ Query &      │→ │ Create Analytics     │   │
+│  │ Shared Data  │  │ Analyze      │  │ Summaries            │   │
+│  └──────────────┘  └──────────────┘  └──────────────────────┘   │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+---
+
+## 🛠️ **Lab Materials**
+
+### **Notebooks**
+| Notebook | Lab | Location |
+|----------|-----|----------|
+| Data Ingestion | Lab 2 | `src/notebooks/01-data-ingestion-primary-workspace.ipynb` |
+| Cross-Workspace Analytics | Lab 3 | `src/notebooks/02-cross-workspace-access-analytics.ipynb` |
+
+### **Infrastructure Code**
+| File | Purpose |
+|------|---------|
+| `infra/main.tf` | Core Azure resources |
+| `infra/multi-workspace.tf` | Analytics workspace configuration |
+| `infra/unity-catalog.tf` | Unity Catalog setup |
+| `infra/clusters.tf` | Databricks cluster configuration |
+
+### **Documentation**
+| Document | Purpose |
+|----------|---------|
+| `SOLUTION-OVERVIEW.md` | Complete solution architecture |
+| `src/notebooks/DEMO-GUIDE.md` | Step-by-step demo workflow |
+| `DEPLOYMENT-CHECKLIST.md` | Deployment verification steps |
+
+---
+
+## ✅ **Validation Checkpoints**
+
+### **After Lab 1**
+- [ ] Both workspaces accessible in Azure portal
+- [ ] Unity Catalog metastore created and attached
+- [ ] Terraform outputs show workspace URLs
+- [ ] Clusters are created (may be stopped)
+
+### **After Lab 2**
+- [ ] 3 Delta tables created in `shared_data.samples`
+- [ ] View `customer_transactions` created
+- [ ] Data visible in Databricks Catalog Explorer
+
+### **After Lab 3**
+- [ ] Successfully queried tables from Analytics workspace
+- [ ] Analytics tables created (e.g., `customer_summary`)
+- [ ] Verified same data accessible without duplication

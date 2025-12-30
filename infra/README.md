@@ -5,16 +5,16 @@ This repository contains Terraform infrastructure as code for deploying Azure Da
 ## Architecture Overview
 
 The infrastructure includes:
-- **Azure Databricks Workspace** with Premium SKU
-- **Unity Catalog** with dedicated metastore and storage
-- **Virtual Network** with dedicated subnets for Databricks
+- **2 Azure Databricks Workspaces** with Premium SKU (Data Engineering + Analytics)
+- **Unity Catalog** with dedicated metastore and shared storage
 - **Storage Account** (ADLS Gen2) for Unity Catalog metastore
 - **Key Vault** for secrets management
 - **Access Connector** for Unity Catalog authentication
 - **Managed Identity** for secure access
-- **Databricks Clusters** (Unity Catalog enabled and Shared)
-- **SQL Warehouse** for analytics
-- **Security and monitoring** configurations
+- **Databricks Clusters** (Unity Catalog enabled)
+- **Log Analytics** for monitoring and diagnostics
+
+> **Network Configuration**: This solution uses **public endpoints** by default for simplicity and faster deployment. For production environments requiring enhanced security, VNet injection with private endpoints can be added.
 
 ## Prerequisites
 
@@ -108,11 +108,13 @@ terraform apply -var-file="prod.tfvars"
 ## Key Features
 
 ### Security
-- Network isolation with dedicated VNet and subnets
-- Network Security Groups with appropriate rules
-- Managed Identity for secure authentication
+- Public endpoints with Azure AD authentication
+- Managed Identity for secure storage access
 - Key Vault integration for secrets management
-- IP-based access restrictions (configurable)
+- Storage account configured without access keys (Azure AD only)
+- Diagnostic logging to Log Analytics
+
+> **Production Note**: For enhanced security, add VNet injection, private endpoints, and Network Security Groups.
 
 ### Unity Catalog
 - Dedicated metastore with ADLS Gen2 storage
@@ -165,15 +167,18 @@ After successful deployment, Terraform will output:
 
 ```
 infra/
-├── main.tf              # Main infrastructure resources
+├── main.tf              # Core Azure resources (Resource Group, Storage, Key Vault)
+├── multi-workspace.tf   # Analytics workspace configuration
+├── unity-catalog.tf     # Unity Catalog metastore and catalog setup
+├── clusters.tf          # Databricks cluster definitions
+├── security.tf          # Role assignments, diagnostics, Log Analytics
 ├── variables.tf         # Variable definitions
-├── outputs.tf          # Output definitions
-├── versions.tf         # Terraform and provider versions
-├── unity-catalog.tf    # Unity Catalog configuration
-├── clusters.tf         # Databricks clusters
-├── security.tf         # Security and monitoring
-├── terraform.tfvars    # Development variables
-└── prod.tfvars         # Production variables
+├── outputs.tf           # Output values (workspace URLs, etc.)
+├── versions.tf          # Terraform and provider versions
+├── terraform.tfvars     # Development variables
+├── prod.tfvars          # Production variables
+├── deploy.ps1           # PowerShell deployment script
+└── deploy.sh            # Bash deployment script
 ```
 
 ## Troubleshooting
@@ -184,9 +189,10 @@ infra/
 - Ensure the access connector is properly configured
 
 ### Network Issues
-- Verify subnet delegation is properly configured
-- Check NSG rules are not blocking traffic
-- Ensure no conflicts with existing VNet address spaces
+- This deployment uses public endpoints by default
+- Ensure your network allows outbound access to Azure Databricks control plane
+- Check firewall rules if accessing from corporate networks
+- For VNet-injected deployments, verify subnet delegation and NSG rules
 
 ### Permission Issues
 - Verify Azure AD permissions for Terraform service principal
@@ -259,11 +265,19 @@ terraform destroy -auto-approve
 
 ## Security Best Practices
 
-- Enable private endpoints for storage accounts in production
+### Current Deployment (Development/Demo)
+- Uses public endpoints for simplicity
+- Azure AD authentication for storage (no access keys)
+- Managed Identity for secure operations
+- Diagnostic logging enabled
+
+### Production Recommendations
+- Add VNet injection with dedicated subnets
+- Enable private endpoints for storage accounts
 - Use Azure Private Link for Databricks workspace access
-- Implement network security groups with minimal required access
+- Implement Network Security Groups with minimal required access
+- Add IP-based access restrictions
 - Regularly rotate keys and secrets
-- Enable audit logging and monitoring
 - Use Azure Policy for governance and compliance
 
 ## Contributing

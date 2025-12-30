@@ -9,7 +9,8 @@ The solution provides:
 - **Shared Unity Catalog** - Centralized governance across all workspaces
 - **Cross-Workspace Data Sharing** - Zero data duplication, instant access
 - **Complete Unity Catalog setup** with dedicated metastore and storage
-- **Security-first design** with VNet integration and managed identities
+- **Public endpoint deployment** for simplicity (VNet injection optional for production)
+- **Managed identities** for secure storage access
 - **Sample Notebooks** demonstrating Delta Lake and Unity Catalog features
 - **Multi-environment support** (dev, staging, production)
 - **Monitoring and governance** capabilities
@@ -80,11 +81,11 @@ The solution provides:
 - Pre-configured catalogs and schemas
 
 ### Security & Compliance
-- VNet injection with custom subnets
-- Network Security Groups with minimal access
+- Public endpoint with optional VNet injection for production
 - Azure Key Vault integration
+- Managed Identity for secure storage access
 - Diagnostic logging and monitoring
-- IP-based access restrictions
+- Azure AD authentication (no storage access keys)
 
 ### High Availability
 - Multi-zone deployment support
