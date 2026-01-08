@@ -3,12 +3,12 @@ environment = "dev"
 location    = "Canada Central"
 
 # Databricks configuration
-databricks_account_id = "<databricks_account_id>"
+databricks_account_id = "<adb_account_id>"
 databricks_sku        = "premium"
-no_public_ip          = false
+# no_public_ip          = false
 
 # Cluster configuration
-cluster_node_type     = "Standard_D4ds_v5"
+cluster_node_type     = "Standard_D4ds_v5"  # More widely available VM size
 cluster_min_workers   = 1
 cluster_max_workers   = 2
 cluster_spark_version = "17.3.x-scala2.13"
@@ -16,18 +16,15 @@ cluster_spark_version = "17.3.x-scala2.13"
 # Unity Catalog configuration
 enable_unity_catalog = true
 metastore_region     = "canadacentral"
-existing_metastore_id = "<your-existing-metastore-id-here> or comment out the entry"
+# existing_metastore_id = "<existing_metastore_id>"
 
 # Unity Catalog admin users (replace with actual user emails)
 unity_catalog_admin_users = [
-  # "admin@yourdomain.com",
-  # "data-engineer@yourdomain.com"
+  # "<email_addr>"
 ]
 
 # Network security - add your IP ranges here
 allowed_ip_ranges = [
   # "203.0.113.0/24",  # Example: Office network
   # "198.51.100.0/24"  # Example: VPN network
-  "52.167.112.163/32",
-  "99.235.179.63/32"
 ]
