@@ -28,7 +28,7 @@ provider "azurerm" {
       prevent_deletion_if_contains_resources = false
     }
   }
-  subscription_id = "569c92fe-efb6-440d-9274-73860e3f69aa"
+  subscription_id = "${var.subscription_id}"
   # Use Azure AD authentication for storage account operations instead of access keys
   storage_use_azuread = true
 }
