@@ -5,7 +5,7 @@ location    = "Canada Central"
 # Databricks configuration
 databricks_account_id = "<adb_account_id>"
 databricks_sku        = "premium"
-# no_public_ip          = false
+subscription_id       = "<workspace subscription id>"
 
 # Cluster configuration
 cluster_node_type     = "Standard_D4ds_v5"  # More widely available VM size

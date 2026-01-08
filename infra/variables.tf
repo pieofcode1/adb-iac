@@ -10,6 +10,12 @@ variable "environment" {
   }
 }
 
+variable "subscription_id" {
+  description = "Subscription ID for the Databricks workspace."
+  type        = string
+  default     = ""
+}
+
 variable "location" {
   description = "Azure region where resources will be created"
   type        = string
